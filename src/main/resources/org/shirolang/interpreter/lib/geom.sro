@@ -69,22 +69,24 @@ node Geometry begin
         eval update Line(startX, startY, endX, endY, stroke, strokeWeight)
     end
 
-    /**
+
     node Group begin
         input originX Double
         input originY Double
         input rotate Double(0.0)
         input children List
+        eval update Group(originX, originY, rotate, children)
+    end
+
+    /**
+    node Image begin
+            input path String
+            input originX Double
+            input originY Double
     end
 
     node Layer begin
         input shapes List
-    end
-
-    node Image begin
-        input path String
-        input originX Double
-        input originY Double
     end
     */
 end

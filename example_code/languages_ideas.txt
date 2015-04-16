@@ -386,3 +386,20 @@ states begin
 	show p.x > 1 AND p.y < 3
 end
 
+
+# creating nested subjunctive nodes
+node ColorSchemes begin
+	option Colors -> red
+	red.value1(ColorFromRGB(22, 0, 0))
+	red.value2(ColorFromRGB(100, 0, 0))
+	red.value3("150, 0, 0")
+		value4("200, 0, 0")
+	end
+	option Colors -> green begin
+		value1("0, 22, 0")
+		value2("0, 100, 0")
+		value3("0, 150, 0")
+		value4("0, 200, 0")
+	end
+end
+

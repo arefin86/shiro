@@ -176,7 +176,7 @@ public class ShiroRuntime{
         }else if (!library.hasUserDefinedStates()){ // has a graph (includes default), but no states
             // generate the states to evaluate the graphs
             Set<SState> sStates = generateAllStates(library.getGraphs());
-            sStates.stream().forEach(s -> library.addState(s));
+            sStates.stream().forEach(library::addState);
         }
 
         for(SState state: library.getStates().values()){
@@ -208,7 +208,6 @@ public class ShiroRuntime{
                         System.out.println("rendering " + type);
                     }
                 }
-
 
             }
             nodes.put(state.getName(), visualized);

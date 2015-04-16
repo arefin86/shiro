@@ -81,6 +81,8 @@ activeSelector
 nodeInternal
     :   (portstmt
         | OPTION? nodestmt
+        | OPTION? nodeProduction
+        | portAssignment
         | NEWLINE)*
     ;
 
@@ -154,6 +156,7 @@ expr :  '(' expr ')'						  #parensExpr
 	 |	NUMBER 								  #numExpr
 	 |  BOOLEAN_LITERAL						  #boolExpr
 	 |  STRING_LITERAL                        #stringExpr
+// consider adding mfcall as an expression, create an internally named instance
 	 ;
 
 INCLUDE: 'include';

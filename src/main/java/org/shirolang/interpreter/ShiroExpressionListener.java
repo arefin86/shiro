@@ -52,12 +52,7 @@ import org.shirolang.functions.math.SNot;
 import org.shirolang.functions.math.SNotEqual;
 import org.shirolang.functions.math.SOr;
 import org.shirolang.functions.math.SSubtract;
-import org.shirolang.values.Path;
-import org.shirolang.values.SBoolean;
-import org.shirolang.values.SDouble;
-import org.shirolang.values.SIdent;
-import org.shirolang.values.SInteger;
-import org.shirolang.values.SString;
+import org.shirolang.values.*;
 
 /**
  * An listener to create expressions.

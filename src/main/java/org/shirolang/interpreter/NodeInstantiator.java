@@ -26,11 +26,14 @@ package org.shirolang.interpreter;
 import java.util.ArrayList;
 import java.util.List;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.shirolang.base.SFunc;
 import org.shirolang.base.SGraph;
 import org.shirolang.base.SNode;
 import org.shirolang.exceptions.OptionNotFoundException;
 import org.shirolang.values.Path;
+import org.shirolang.values.SIdent;
 
 /**
  * Listener used to realize node parse trees
@@ -38,6 +41,11 @@ import org.shirolang.values.Path;
  * @author jeffreyguenther
  */
 public class NodeInstantiator extends ShiroExpressionListener {
+
+    public static final int FIRST_PASS = 1;
+    public static final int SECOND_PASS = 2;
+    protected int pass;
+
     private SNode createdNode;
     private SGraph graph;
 
@@ -48,6 +56,10 @@ public class NodeInstantiator extends ShiroExpressionListener {
         createdNode = null;
     }
 
+    public void setPass(int pass){
+        this.pass = pass;
+    }
+
     public SNode getCreatedNode() {
         return createdNode;
     }
@@ -55,7 +67,7 @@ public class NodeInstantiator extends ShiroExpressionListener {
     @Override
     public void enterNodestmt(ShiroParser.NodestmtContext ctx) {
         // if there is at least one node on the scope stack
-        // stack will always be size 1 because of the parametric system
+        // stack will always be size 1 because of the graph
         if (scope.size() > 1) {
             SNode parentNode = (SNode) scope.peek();
             
@@ -94,6 +106,61 @@ public class NodeInstantiator extends ShiroExpressionListener {
         // if the stack is not empty, pop
         if(scope.size() > 1){
             createdNode = (SNode) scope.pop();
+        }
+    }
+
+    @Override
+    public void exitNodeProduction(@NotNull ShiroParser.NodeProductionContext ctx) {
+        if(pass == FIRST_PASS) {
+            //  get the path of LHS of production operator
+            SIdent lhs = (SIdent) getExpr(ctx.path());
+            Path p = lhs.getValue();
+
+            // for each activation
+            for (ShiroParser.ActivationContext ac : ctx.activation()) {
+                String nodeName = ac.nodeName.getText();
+
+                SGraph g = (SGraph) scope.peek();
+                SNode producedNode = (SNode) library.instantiateNode(g, p, nodeName);
+
+                // TODO add support for argument maps
+                ShiroParser.NodeAssignmentContext assignment = ac.nodeAssignment();
+                if(assignment != null){
+                    if( assignment.argMap() != null ){
+                        List<Token> keys = assignment.argMap().keys;
+                        List<ShiroParser.ExprContext> values = assignment.argMap().values;
+
+                        for(int i = 0; i < keys.size(); i++){
+                            SFunc port = producedNode.getPort(keys.get(i).getText());
+
+                            if(port == null){
+                                throw new RuntimeException(keys.get(i).getText() + " cannot be found in " + producedNode.getFullName());
+                            }
+
+                            port.setArg(0, getExpr(values.get(i)));
+                        }
+                    }
+
+                    if(assignment.mfparams() != null ){
+                        List<ShiroParser.ExprContext> exprs = assignment.mfparams().expr();
+                        for (int i = 0; i < exprs.size(); i++) {
+                            SFunc port = producedNode.getPort(i);
+                            port.setArg(0, getExpr(exprs.get(i)));
+                        }
+                    }
+                }
+
+                g.addNode(producedNode);
+
+                if (ac.activeObject != null) {
+                    String updatePort = ac.activeObject.getText();
+                    try {
+                        producedNode.setActiveOption(updatePort);
+                    } catch (OptionNotFoundException e) {
+                        System.out.println(e.getMessage());
+                    }
+                }
+            }
         }
     }
 
@@ -155,14 +222,16 @@ public class NodeInstantiator extends ShiroExpressionListener {
     
     @Override
     public void exitPortDeclInit(ShiroParser.PortDeclInitContext ctx) {
-        super.exitPortDeclInit(ctx);
+        if(pass == SECOND_PASS) {
+            super.exitPortDeclInit(ctx);
 
-        // Add the port to it's encapsulating node
-        SNode node = (SNode) scope.peek();
-        if(ctx.OPTION() == null){
-            node.addPort(getExpr(ctx));
-        }else{
-            node.addOption(getExpr(ctx));
+            // Add the port to it's encapsulating node
+            SNode node = (SNode) scope.peek();
+            if (ctx.OPTION() == null) {
+                node.addPort(getExpr(ctx));
+            } else {
+                node.addOption(getExpr(ctx));
+            }
         }
     }
     

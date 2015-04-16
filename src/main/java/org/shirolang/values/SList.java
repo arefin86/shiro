@@ -24,21 +24,58 @@
 
 package org.shirolang.values;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+
 import org.shirolang.base.SFunc;
+import org.shirolang.base.SFuncBase;
+import org.shirolang.base.SType;
+import org.shirolang.base.TypedValue;
+
+import static java.util.stream.Collectors.toList;
 
 /**
+ * Defines a list in Shiro
  *
  * @author jeffreyguenther
  */
-public class SList extends SValue<List<SFunc>>{
-    
-    public SList(List<SFunc> l){
-        super(l);
+public class SList extends SValue<List<SFunc>> {
+
+    public SList() {
+        this(new ArrayList<>());
+    }
+
+    public SList(List<SFunc> list){
+        super(list);
+    }
+
+    public SList(String name, List<SFunc> list){
+        super(name, list);
+    }
+
+    @Override
+    public void evaluate() {
+        List<TypedValue> all = args.getAll();
+        List<SFunc> funcs = all.stream().map((t) -> t.getValue()).collect(Collectors.toList());
+        getValue().addAll(funcs);
+
+        super.evaluate();
     }
 
     @Override
     public String getType() {
-        return "List";
+        return SType.LIST;
+    }
+
+    @Override
+    public int getMaxArgs() {
+        return Integer.MAX_VALUE;
+    }
+
+    @Override
+    public int getMinArgs() {
+        return 0;
     }
 }

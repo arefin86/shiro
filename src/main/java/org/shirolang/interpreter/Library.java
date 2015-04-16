@@ -166,6 +166,11 @@ public class Library {
         ParseTree nodeDef = nodeDefs.get(p.getPath());
         NodeInstantiator nodeProducer = new NodeInstantiator(this, g);
         ParseTreeWalker walker = new ParseTreeWalker();
+
+        // instantiating a node now takes two passes
+        // pass 1: instantiate the nodes
+        // pass 2: assign values to the created ports
+
         walker.walk(nodeProducer, nodeDef);
         SNode node = nodeProducer.getCreatedNode();
         node.setName(name);
@@ -379,6 +384,8 @@ public class Library {
             registerFunction(SType.OR, () -> new SOr());
             registerFunction(SType.POWER, () -> new SPower());
             registerFunction(SType.SUBTRACT, () -> new SSubtract());
+
+            registerFunction(SType.LIST, () -> new SList());
 
         } catch (NameUsedException e) {
             throw new RuntimeException("Something crazy happened and an internal type is already defined!");
