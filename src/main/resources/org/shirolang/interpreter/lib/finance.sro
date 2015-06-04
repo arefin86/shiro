@@ -11,8 +11,16 @@ node Finance begin
         input principal Double
         input rate Double
         input time Double
+        input noOfCompounds Double
+        port rFactor Divide(rate, noOfCompounds)
+        port nFactor Multiply(rate, noOfCompounds)
+        port compoundInterest Add(1,rFactor)
+        port iFactor Power(compoundInterest, nFactor)
+        port interest1 Multiply(principal, iFactor)
+        port interest2 Subtract(principal, interest1)
+        
         // evaluate using only ports
-        output interest Double
-        output accrued Double
+        output interest Double(interest2)
+        output accrued Double(interest1)
     end
 end
